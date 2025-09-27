@@ -20,6 +20,7 @@ type AxisSheet struct {
 	RoleName   string
 	LogicFrame string
 	Operation  string
+	Time       string
 }
 
 type Service struct {
@@ -83,12 +84,14 @@ func (s *Service) InitAxis() {
 				RoleName:   row[2],
 				LogicFrame: row[0],
 				Operation:  row[3],
+				Time:       row[1],
 			})
 		} else if len(row) == 3 {
 			s.Axis = append(s.Axis, AxisSheet{
 				RoleName:   row[2],
 				LogicFrame: row[0],
 				Operation:  row[2],
+				Time:       row[1],
 			})
 		}
 	}
@@ -174,7 +177,7 @@ func (s *Service) Gen() {
 	b.WriteString(UnPause)
 	for _, axis := range s.Axis {
 		if axis.RoleName == "BOSS  UB" {
-			b.WriteString(BossUB)
+			b.WriteString(fmt.Sprintf(BossUB, axis.Time))
 			continue
 		}
 		renderFrame := "0"
@@ -185,13 +188,13 @@ func (s *Service) Gen() {
 			}
 		}
 		if axis.Operation == "AUTO" {
-			b.WriteString(fmt.Sprintf(AUTO, renderFrame, axis.LogicFrame, renderFrame, axis.LogicFrame))
+			b.WriteString(fmt.Sprintf(AUTO, renderFrame, axis.RoleName, axis.LogicFrame, axis.Time, renderFrame))
 			continue
 		}
 		if axis.Operation != "连点" {
-			b.WriteString(fmt.Sprintf(Single, renderFrame, axis.LogicFrame, renderFrame, axis.RoleName, axis.LogicFrame, renderFrame, axis.LogicFrame))
+			b.WriteString(fmt.Sprintf(Single, renderFrame, renderFrame, axis.RoleName, axis.LogicFrame, axis.Time, renderFrame))
 		} else {
-			b.WriteString(fmt.Sprintf(Muti, renderFrame, axis.RoleName, axis.LogicFrame))
+			b.WriteString(fmt.Sprintf(Muti, renderFrame, axis.RoleName, axis.LogicFrame, axis.Time))
 		}
 	}
 	b.WriteString(fmt.Sprintf(Suffix, s.EndTime))
@@ -228,9 +231,9 @@ const (
 	Prefix  = "from autotimeline import *\nimport sys\nsys.path.append('.')\n\nprint(\"minitouch 连接中\")\nminitouch.connect(\"127.0.0.1\", 1111)\nmax_x = minitouch.getMaxX()\nmax_y = minitouch.getMaxY()\nminitouch.setPos(\"暂停\", int(max_x * 0.94), int(max_y * 0.05))\nminitouch.setPos(\"SET\", int(max_x * 0.95), int(max_y * 0.64))\nminitouch.setPos(\"AUTO\", int(max_x * 0.95), int(max_y * 0.76))\nminitouch.setPos(\"SPEED\", int(max_x * 0.95), int(max_y * 0.9))\n"
 	Poi     = "print(\"%s 定位中\")\nminitouch.setPos(\"%s\", int(max_x * %.2f), int(max_y * 0.8))\n"
 	UnPause = "print(\"解除暂停，塔塔开!\")\n\nautopcr.setOffset(2, 0); # offset calibration\nautopcr.waitFrame(autopcr.getFrame() + 50); minitouch.press(\"SPEED\") #加速\n"
-	Single  = "autopcr.waitFrame(%s - 120); minitouch.press(\"SPEED\") #减速 lframe %s\nautopcr.waitFrame(%s); minitouch.press(\"%s\") # lframe %s\nautopcr.waitFrame(%s + 30); minitouch.press(\"SPEED\") #加速 lframe %s\n"
-	Muti    = "autopcr.waitFrame(%s - 60); minitouch.press(\"%s\") #连点 lframe %s\n"
-	BossUB  = "#BOSS  UB\n"
-	AUTO    = "autopcr.waitFrame(%s - 60); minitouch.press(\"AUTO\") #AUTO开 lframe %s\n#AUTO\nautopcr.waitFrame(%s + 10); minitouch.press(\"AUTO\") #AUTO关 lframe %s\n"
+	Single  = "autopcr.waitFrame(%s - 120); minitouch.press(\"SPEED\") #减速\nautopcr.waitFrame(%s); minitouch.press(\"%s\") #lframe %s//time %s\nautopcr.waitFrame(%s + 30); minitouch.press(\"SPEED\") #加速 \n"
+	Muti    = "autopcr.waitFrame(%s - 60); minitouch.press(\"%s\") #连点 lframe %s//time %s\n"
+	BossUB  = "#BOSS  UB//time %s\n"
+	AUTO    = "autopcr.waitFrame(%s - 60); minitouch.press(\"AUTO\") #AUTO开\n# %s AUTO lframe %s//time %s\nautopcr.waitFrame(%s + 10); minitouch.press(\"AUTO\") #AUTO关\n"
 	Suffix  = "autopcr.waitFrame(%s - 60); minitouch.press(\"暂停\") #暂停\n\n#日志：\n#v3:添加了最后暂停\n#v4:引入auto，修改set提前量S\n"
 )
