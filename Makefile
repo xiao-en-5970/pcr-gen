@@ -42,3 +42,5 @@ run:
 	@echo "Running $(BINARY_NAME)..."
 	@go mod tidy
 	@go run main.go
+push:
+	git push -f origin
