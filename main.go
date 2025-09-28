@@ -213,7 +213,7 @@ func (s *Service) Gen() {
 					panic(err)
 				}
 				if i > 0 && s.Axis[i-1].Operation == "连点" && axis.Operation == "连点" && aftF-preF <= 60 {
-					fix += 45
+					fix += 60
 				} else {
 					fix = 0
 				}

@@ -17,7 +17,8 @@ all: build
 
 # 构建所有平台
 .PHONY: build
-build: $(PLATFORMS)
+build: clean $(PLATFORMS)
+	git tag -a $(VERSION) -m "Release version $(VERSION)" || true
 
 # 为每个平台定义构建规则
 .PHONY: $(PLATFORMS)
@@ -27,6 +28,7 @@ $(PLATFORMS):
 	@GOOS=$(word 1,$(subst -, ,$@)) \
 	 GOARCH=$(word 2,$(subst -, ,$@)) \
 	 go build -ldflags "-X main.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-$(VERSION)-$@$(if $(filter windows-%,$@),.exe,)
+
 
 # 清理构建目录
 .PHONY: clean
