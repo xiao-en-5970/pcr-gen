@@ -19,6 +19,7 @@ all: build
 .PHONY: build
 build: clean $(PLATFORMS)
 	git tag -a $(VERSION) -m "Release version $(VERSION)" || true
+	git push origin $(VERSION) || true
 
 # 为每个平台定义构建规则
 .PHONY: $(PLATFORMS)
