@@ -188,6 +188,7 @@ func (s *Service) RemoveLastTwoLines(builder *strings.Builder) {
 func (s *Service) Gen() {
 	b := strings.Builder{}
 	b.WriteString(Prefix)
+	b.WriteString(fmt.Sprintf(FileName, s.XlsxName))
 	//角色位置
 	rolefix := 0.74
 	for _, name := range s.Roles {
@@ -271,13 +272,14 @@ func main() {
 
 // 常量格式化
 const (
-	Prefix  = "from autotimeline import *\nimport sys\nsys.path.append('.')\n\nprint(\"minitouch 连接中\")\nminitouch.connect(\"127.0.0.1\", 1111)\nmax_x = minitouch.getMaxX()\nmax_y = minitouch.getMaxY()\nminitouch.setPos(\"暂停\", int(max_x * 0.94), int(max_y * 0.05))\nminitouch.setPos(\"SET\", int(max_x * 0.95), int(max_y * 0.64))\nminitouch.setPos(\"AUTO\", int(max_x * 0.95), int(max_y * 0.76))\nminitouch.setPos(\"SPEED\", int(max_x * 0.95), int(max_y * 0.9))\n"
-	Poi     = "print(\"%s 定位中\")\nminitouch.setPos(\"%s\", int(max_x * %.2f), int(max_y * 0.8))\n"
-	UnPause = "print(\"解除暂停，塔塔开!\")\n\nautopcr.setOffset(2, 0); # offset calibration\nautopcr.waitFrame(autopcr.getFrame() + 50); minitouch.press(\"SPEED\") #加速\n"
-	Single  = "autopcr.waitFrame(%s - 120); minitouch.press(\"SPEED\") #减速\nautopcr.waitFrame(%s); minitouch.press(\"%s\") #lframe %s//time %s\nautopcr.waitFrame(%s + 30); minitouch.press(\"SPEED\") #加速 \n"
-	Muti    = "autopcr.waitFrame(%s - 60); minitouch.press(\"%s\") #连点 lframe %s//time %s\n"
-	MutiFix = "autopcr.waitFrame(%s - 60 + %d); minitouch.press(\"%s\") #连点 lframe %s//time %s\n"
-	BossUB  = "#BOSS  UB//time %s\n"
-	AUTO    = "autopcr.waitFrame(%s - 60); minitouch.press(\"AUTO\") #AUTO开\n# %s AUTO lframe %s//time %s\nautopcr.waitFrame(%s + 10); minitouch.press(\"AUTO\") #AUTO关\n"
-	Suffix  = "autopcr.waitFrame(%s - 60); minitouch.press(\"暂停\") #暂停\n\n#日志：\n#v3:添加了最后暂停\n#v4:引入auto，修改set提前量S\n"
+	Prefix   = "from autotimeline import *\nimport sys\nsys.path.append('.')\n\nprint(\"minitouch 连接中\")\nminitouch.connect(\"127.0.0.1\", 1111)\nmax_x = minitouch.getMaxX()\nmax_y = minitouch.getMaxY()\nminitouch.setPos(\"暂停\", int(max_x * 0.94), int(max_y * 0.05))\nminitouch.setPos(\"SET\", int(max_x * 0.95), int(max_y * 0.64))\nminitouch.setPos(\"AUTO\", int(max_x * 0.95), int(max_y * 0.76))\nminitouch.setPos(\"SPEED\", int(max_x * 0.95), int(max_y * 0.9))\n"
+	FileName = "print(\"正在运行: %s\")\n"
+	Poi      = "print(\"%s 定位中\")\nminitouch.setPos(\"%s\", int(max_x * %.2f), int(max_y * 0.8))\n"
+	UnPause  = "print(\"解除暂停，塔塔开!\")\n\nautopcr.setOffset(2, 0); # offset calibration\nautopcr.waitFrame(autopcr.getFrame() + 50); minitouch.press(\"SPEED\") #加速\n"
+	Single   = "autopcr.waitFrame(%s - 120); minitouch.press(\"SPEED\") #减速\nautopcr.waitFrame(%s); minitouch.press(\"%s\") #lframe %s//time %s\nautopcr.waitFrame(%s + 30); minitouch.press(\"SPEED\") #加速 \n"
+	Muti     = "autopcr.waitFrame(%s - 60); minitouch.press(\"%s\") #连点 lframe %s//time %s\n"
+	MutiFix  = "autopcr.waitFrame(%s - 60 + %d); minitouch.press(\"%s\") #连点 lframe %s//time %s\n"
+	BossUB   = "#BOSS  UB//time %s\n"
+	AUTO     = "autopcr.waitFrame(%s - 60); minitouch.press(\"AUTO\") #AUTO开\n# %s AUTO lframe %s//time %s\nautopcr.waitFrame(%s + 10); minitouch.press(\"AUTO\") #AUTO关\n"
+	Suffix   = "autopcr.waitFrame(%s - 60); minitouch.press(\"暂停\") #暂停\n\n#日志：\n#v3:添加了最后暂停\n#v4:引入auto，修改set提前量S\n"
 )
