@@ -29,7 +29,6 @@ $(PLATFORMS):
 	 GOARCH=$(word 2,$(subst -, ,$@)) \
 	 go build -ldflags "-X main.Version=$(VERSION)" -o $(BUILD_DIR)/$(BINARY_NAME)-$(VERSION)-$@$(if $(filter windows-%,$@),.exe,)
 
-
 # 清理构建目录
 .PHONY: clean
 clean:
