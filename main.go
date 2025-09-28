@@ -204,7 +204,6 @@ func (s *Service) Gen() {
 			b.WriteString(fmt.Sprintf(BossUB, axis.Time))
 			continue
 		}
-
 		for _, r := range s.Logic2Render[axis.LogicFrame] {
 			if r.RoleName == axis.RoleName && r.Reason == "放UB" && r.TpReturn <= s.Role2TpRe[axis.RoleName] {
 				// 修正渲染帧不超过60的情况下释放顺序颠倒
@@ -214,7 +213,7 @@ func (s *Service) Gen() {
 					panic(err)
 				}
 				if i > 0 && s.Axis[i-1].Operation == "连点" && axis.Operation == "连点" && aftF-preF <= 60 {
-					fix += 60
+					fix += 45
 				} else {
 					fix = 0
 				}
