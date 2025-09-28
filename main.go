@@ -207,8 +207,13 @@ func (s *Service) Gen() {
 
 		for _, r := range s.Logic2Render[axis.LogicFrame] {
 			if r.RoleName == axis.RoleName && r.Reason == "放UB" && r.TpReturn <= s.Role2TpRe[axis.RoleName] {
-				// 修正渲染帧重合的情况下释放顺序颠倒
-				if i > 0 && s.Axis[i-1].Operation == "连点" && axis.Operation == "连点" && renderFrame == r.RenderFrame {
+				// 修正渲染帧不超过60的情况下释放顺序颠倒
+				preF, err := strconv.Atoi(renderFrame)
+				aftF, err := strconv.Atoi(r.RenderFrame)
+				if err != nil {
+					panic(err)
+				}
+				if i > 0 && s.Axis[i-1].Operation == "连点" && axis.Operation == "连点" && aftF-preF <= 60 {
 					fix += 60
 				} else {
 					fix = 0
