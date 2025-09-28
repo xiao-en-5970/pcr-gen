@@ -213,7 +213,7 @@ func (s *Service) Gen() {
 					panic(err)
 				}
 				if i > 0 && s.Axis[i-1].Operation == "连点" && axis.Operation == "连点" && aftF-preF <= 60 {
-					fix += preF - aftF + 5 + 60 //连点间隔+前置等待+提前量
+					fix += (preF - aftF) + 5 + 60 //两帧差+短间隔+提前量修正
 				} else {
 					fix = 0
 				}
