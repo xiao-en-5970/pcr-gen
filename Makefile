@@ -5,8 +5,8 @@ VERSION ?= dev
 PLATFORMS := darwin-arm64 windows-amd64
 
 # 定义构建目录前缀
-BUILD_ROOT := .build/*
-BUILD_DIR := .build/PCR-$(VERSION)
+BUILD_ROOT := build/*
+BUILD_DIR := build/PCR-$(VERSION)
 
 # 定义二进制名称
 BINARY_NAME := PCR-Gen
