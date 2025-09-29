@@ -43,4 +43,4 @@ run:
 	@go mod tidy
 	@go run main.go
 push:
-	git push -f origin
+	git push -f origin $(1)
