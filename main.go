@@ -300,5 +300,5 @@ const (
 	MutiFix  = "autopcr.waitFrame(%s - 60 + %d); minitouch.press(\"%s\") #连点 lframe %s//time %s\n"
 	BossUB   = "# %s//time %s\n"
 	AUTO     = "autopcr.waitFrame(%s - 60); minitouch.press(\"AUTO\") #AUTO开\n# %s AUTO lframe %s//time %s\nautopcr.waitFrame(%s + 10); minitouch.press(\"AUTO\") #AUTO关\n"
-	Suffix   = "autopcr.waitFrame(%s - 60); minitouch.press(\"暂停\") #暂停\n\n#py脚本生成工具:  PCR-Gen\n#作者:  小奀\n#Github:  https://github.com/xiao-en-5970/pcr-gen\n"
+	Suffix   = "autopcr.waitFrame(%s - 60); minitouch.press(\"暂停\") #暂停\n"
 )
