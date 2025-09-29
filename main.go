@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -24,15 +25,17 @@ type AxisSheet struct {
 	LogicFrame string //逻辑帧
 	Operation  string //操作
 	Time       string //时间
+	IsRole     int    //是否是玩家操作
 }
 
 type Service struct {
-	XlsxName     string                //文件名
+	InFileName   string                //输入文件名
+	OutFileName  string                //输出文件名
 	Axis         []AxisSheet           //轴模板
 	Logic2Render map[string][]TpChange //逻辑帧对应TP变化
 	SheetNames   []string              //表名
 	RoleNamesMap map[string]bool       //角色Map，快速查找是否是可操作角色
-	Sheet        map[string][][]string //表名 >> 表
+	SheetMap     map[string][][]string //表名 >> 表
 	File         *excelize.File        //文件指针
 	Roles        []string              //按顺序排列的角色
 	Role2TpRe    map[string]float64    //角色对常规TP返还数的Map
@@ -41,12 +44,18 @@ type Service struct {
 
 // 打开文件
 func (s *Service) OpenXlsx(filename string) *excelize.File {
+	strs := strings.SplitAfter(filename, ".")
+	if strs[len(strs)-1] != "xlsx" {
+		panic(errors.New("请选择xlsx文件"))
+	}
+	strs = strs[:len(strs)-1]
 	file, err := excelize.OpenFile(filename)
 	if err != nil {
 		panic(err)
 	}
-	s.XlsxName = filename
+	s.InFileName = filename
 	s.File = file
+	s.SetOut(strings.Join(strs, "") + "py")
 	return file
 }
 
@@ -69,16 +78,16 @@ func (s *Service) GetRows(sheetName string) [][]string {
 func (s *Service) InitSheets(sheetNames []string) {
 	s.SheetNames = sheetNames
 
-	s.Sheet = make(map[string][][]string)
+	s.SheetMap = make(map[string][][]string)
 	for _, sheetName := range s.SheetNames {
-		s.Sheet[sheetName] = s.GetRows(sheetName)
+		s.SheetMap[sheetName] = s.GetRows(sheetName)
 
 	}
 }
 
 // 初始化每个逻辑帧的轴并考虑boss情况
 func (s *Service) InitAxis() {
-	rows := s.Sheet["轴模板"]
+	rows := s.SheetMap["轴模板"]
 	start := 0
 	for i, row := range rows {
 		if len(row) > 0 && row[0] == "帧数" {
@@ -89,19 +98,24 @@ func (s *Service) InitAxis() {
 	s.Axis = make([]AxisSheet, 0, len(rows)-start+2)
 	for i := start; i < len(rows); i++ {
 		row := rows[i]
-		if len(row) > 3 {
+		if len(row) < 3 {
+			continue
+		}
+		if len(row) >= 4 && row[3] != "" {
 			s.Axis = append(s.Axis, AxisSheet{
 				RoleName:   row[2],
 				LogicFrame: row[0],
 				Operation:  row[3],
 				Time:       row[1],
+				IsRole:     1,
 			})
-		} else if len(row) == 3 {
+		} else {
 			s.Axis = append(s.Axis, AxisSheet{
 				RoleName:   row[2],
 				LogicFrame: row[0],
 				Operation:  row[2],
 				Time:       row[1],
+				IsRole:     0,
 			})
 		}
 	}
@@ -110,9 +124,9 @@ func (s *Service) InitAxis() {
 // 初始化TP变化中所有原因为UB的渲染帧
 func (s *Service) InitRender() {
 	s.Logic2Render = make(map[string][]TpChange) // 初始化一次
-	rows := s.Sheet["TP变化"]
+	rows := s.SheetMap["TP变化"]
 	for i, row := range rows {
-		if i < 4 {
+		if i < 3 || row[0] == "0" {
 			continue
 		}
 		tpRe, err := strconv.ParseFloat(row[len(row)-2], 64)
@@ -139,7 +153,7 @@ func (s *Service) InitRender() {
 
 // 初始化角色数据
 func (s *Service) InitRoles() {
-	rows := s.Sheet["基础数据"]
+	rows := s.SheetMap["基础数据"]
 	start := 0
 	s.RoleNamesMap = make(map[string]bool)
 	s.Role2TpRe = make(map[string]float64)
@@ -148,7 +162,6 @@ func (s *Service) InitRoles() {
 			start = i + 1
 			break
 		}
-
 	}
 	s.Roles = make([]string, 0, len(rows)-start+2)
 	for i := start; i < len(rows); i++ {
@@ -161,10 +174,16 @@ func (s *Service) InitRoles() {
 	}
 }
 
+// 设置输出
+func (s *Service) SetOut(filename string) {
+	s.OutFileName = filename
+}
+
 // 初始化主体
 func NewService(filename string) *Service {
 	s := &Service{}
 	s.OpenXlsx(filename)
+
 	s.InitSheets([]string{"轴模板", "TP变化", "基础数据"})
 	s.InitRoles()
 	s.InitAxis()
@@ -188,7 +207,7 @@ func (s *Service) RemoveLastTwoLines(builder *strings.Builder) {
 func (s *Service) Gen() {
 	b := strings.Builder{}
 	b.WriteString(Prefix)
-	b.WriteString(fmt.Sprintf(FileName, s.XlsxName))
+	b.WriteString(fmt.Sprintf(FileName, s.InFileName))
 	//角色位置
 	rolefix := 0.74
 	for _, name := range s.Roles {
@@ -201,8 +220,8 @@ func (s *Service) Gen() {
 	renderFrame := "0"
 	fix := 0
 	for i, axis := range s.Axis {
-		if axis.RoleName == "BOSS  UB" {
-			b.WriteString(fmt.Sprintf(BossUB, axis.Time))
+		if axis.IsRole == 0 {
+			b.WriteString(fmt.Sprintf(BossUB, axis.RoleName, axis.Time))
 			continue
 		}
 		for _, r := range s.Logic2Render[axis.LogicFrame] {
@@ -241,7 +260,7 @@ func (s *Service) Gen() {
 	}
 	b.WriteString(fmt.Sprintf(Suffix, s.EndTime))
 	// 写入 out.py 文件
-	os.WriteFile("out.py", []byte(b.String()), 0644)
+	os.WriteFile(s.OutFileName, []byte(b.String()), 0644)
 }
 
 // 命令行参数
@@ -279,7 +298,7 @@ const (
 	Single   = "autopcr.waitFrame(%s - 120); minitouch.press(\"SPEED\") #减速\nautopcr.waitFrame(%s); minitouch.press(\"%s\") #lframe %s//time %s\nautopcr.waitFrame(%s + 30); minitouch.press(\"SPEED\") #加速 \n"
 	Muti     = "autopcr.waitFrame(%s - 60); minitouch.press(\"%s\") #连点 lframe %s//time %s\n"
 	MutiFix  = "autopcr.waitFrame(%s - 60 + %d); minitouch.press(\"%s\") #连点 lframe %s//time %s\n"
-	BossUB   = "#BOSS  UB//time %s\n"
+	BossUB   = "# %s//time %s\n"
 	AUTO     = "autopcr.waitFrame(%s - 60); minitouch.press(\"AUTO\") #AUTO开\n# %s AUTO lframe %s//time %s\nautopcr.waitFrame(%s + 10); minitouch.press(\"AUTO\") #AUTO关\n"
-	Suffix   = "autopcr.waitFrame(%s - 60); minitouch.press(\"暂停\") #暂停\n\n#日志：\n#v3:添加了最后暂停\n#v4:引入auto，修改set提前量S\n"
+	Suffix   = "autopcr.waitFrame(%s - 60); minitouch.press(\"暂停\") #暂停\n\n#py脚本生成工具:  PCR-Gen\n#作者:  小奀\n#Github:  https://github.com/xiao-en-5970/pcr-gen\n"
 )
