@@ -58,5 +58,5 @@ autopcr.waitFrame(11687 - 60); minitouch.press("水白") #连点 lframe 5140//ti
 autopcr.waitFrame(12303 - 60); minitouch.press("暂停") #暂停
 
 #py脚本生成工具:  PCR-Gen
-#作者:  小奀
+#作者:  小奀Í
 #Github:  https://github.com/xiao-en-5970/pcr-gen
